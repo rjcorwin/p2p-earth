@@ -16,4 +16,4 @@ ADD ./server/ /app/server/
 EXPOSE 3000 
 
 WORKDIR /app/server/
-ENTRYPOINT npm run start
+ENTRYPOINT node app.js 

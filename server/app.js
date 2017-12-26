@@ -1,53 +1,30 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var passport = require('passport');
+var read = require('read-yaml')
+var PouchDB = require('pouchdb')
+var express = require('express')
+var passport = require('passport')
+var path = require('path')
 
-var index = require('./routes/index');
-var users = require('./routes/users');
+//var User = require('./User')
 
-var app = express();
+//var config = read.sync('/tangerine/server/config.yml')
 
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+var app = express()
 
-app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, '../client')));
+app.use(function (req, res, next) {
+  console.log('Time:', Date.now())
+  console.log(Object.keys(req))
+  next()
+})
+//app.use(express.static('public'));
+app.use('/', express.static(path.join(__dirname, '../client/')))
 
-app.use('/', index);
-app.use('/users', users);
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
-});
-
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
-
-/*
- * Passport setup
- */
-
+// Use application-level middleware for common functionality, including
+// logging, parsing, and session handling.
+app.use(require('morgan')('combined'));
 app.use(require('cookie-parser')());
 app.use(require('body-parser').urlencoded({ extended: true }));
-app.use(require('express-session')({ secret: process.env.SESSION_SECRET, resave: true, saveUninitialized: true }));
+//app.use(require('express-session')({ secret: process.env.SESSION_SECRET, resave: true, saveUninitialized: true }));
+app.use(require('express-session')({ secret: 'foo', resave: true, saveUninitialized: true }));
 
 // Initialize Passport and restore authentication state, if any, from the
 // session.
@@ -67,9 +44,9 @@ passport.deserializeUser(function(user, done) {
 /*
  * Auth0 Auth
  */
-var Auth0Strategy = require('passport-auth0'),
-    passport = require('passport');
-
+var Auth0Strategy = require('passport-auth0')//,
+//    passport = require('passport');
+console.log(process.env.BASE_PATH)
 var strategy = new Auth0Strategy({
    domain:       process.env.AUTH0_DOMAIN,
    clientID:     process.env.AUTH0_CLIENT_ID,
@@ -80,11 +57,6 @@ var strategy = new Auth0Strategy({
     // accessToken is the token to call Auth0 API (not needed in the most cases)
     // extraParams.id_token has the JSON Web Token
     // profile has all the information from the user
-		/*
-     User.findOrCreate({ googleId: profile.id }, function (err, user) {
-       return done(err, user)
-     })
-		*/
     return done(null, profile);
   }
 );
@@ -106,4 +78,4 @@ app.get('/auth0/login',
   res.redirect("/");
 });
 
-module.exports = app;
+app.listen(3000)

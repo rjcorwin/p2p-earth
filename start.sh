@@ -13,14 +13,14 @@ docker stop $CONTAINER_NAME > /dev/null
 docker rm $CONTAINER_NAME > /dev/null
 echo "Running $T_CONTAINER_NAME at version $T_TAG"
 docker run -d \
-  --volume $(pwd)/client/package.json:/app/client/package.json \
   --name $CONTAINER_NAME \
-  --env "BASE_PATH:$BASE_PATH" \
+  -e "BASE_PATH=$BASE_PATH" \
+  -e "SESSION_SECRET=$SESSION_SECRET" \
   -e "LETSENCRYPT_HOST=$DOMAIN" \
   -e "VIRTUAL_HOST=$DOMAIN" \
   -e "LETSENCRYPT_EMAIL=$EMAIL" \
-  --env "AUTH0_DOMAIN=$AUTH0_DOMAIN" \
-  --env "AUTH0_CLIENT_ID=$AUTH0_CLIENT_ID" \
-  --env "AUTH0_CLIENT_SECRET=$AUTH0_CLIENT_SECRET" \
+  -e "AUTH0_DOMAIN=$AUTH0_DOMAIN" \
+  -e "AUTH0_CLIENT_ID=$AUTH0_CLIENT_ID" \
+  -e "AUTH0_CLIENT_SECRET=$AUTH0_CLIENT_SECRET" \
   --volume $(pwd)/db:/app/db/ \
   rjsteinert/p2p-web:$TAG
