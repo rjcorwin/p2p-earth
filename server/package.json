@@ -20,6 +20,6 @@
 		"express-session": "1.15.6",
 		"cookie-parser": "1.4.3",
 		"express": "4.16.2",
-		"passport-auth0": "0.6.0"
+		"passport-google-oauth": "1.0.0"
 	}
 }
