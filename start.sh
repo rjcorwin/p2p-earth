@@ -9,7 +9,7 @@ fi
 
 echo "Pulling $TAG"
 docker pull rjsteinert/p2p-web:$TAG
-docker stop $CONTAINER_NAME > /dev/null
+docker kill $CONTAINER_NAME > /dev/null
 docker rm $CONTAINER_NAME > /dev/null
 echo "Running $T_CONTAINER_NAME at version $T_TAG"
 docker run -d \

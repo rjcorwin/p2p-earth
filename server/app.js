@@ -1,10 +1,37 @@
 var read = require('read-yaml')
 var PouchDB = require('pouchdb')
+PouchDB.defaults({prefix: './db/'})
+
 var express = require('express')
 var passport = require('passport')
 var path = require('path')
 
 //var User = require('./User')
+class Users {
+  constructor() {
+    this.db = new PouchDB('users')
+  }
+  async findOrCreate(profile, done) {
+    try {
+      let user = await this.db.get(profile.id)
+      done(null, profile)
+    } catch(err) {
+      console.log(`Creating user ${profile.id}`)
+      console.log(JSON.stringify(profile))
+      try {
+        let res = await this.db.put(Object.assign({_id: profile.id}, profile))
+      } catch(err) {
+        console.log(err)
+      }
+      console.log(res)
+      //let user = await this.db.get(res.id)
+      //return user
+      done(null, profile)
+    }
+  }
+}
+
+var users = new Users() 
 
 //var config = read.sync('/tangerine/server/config.yml')
 
@@ -57,7 +84,12 @@ var strategy = new Auth0Strategy({
     // accessToken is the token to call Auth0 API (not needed in the most cases)
     // extraParams.id_token has the JSON Web Token
     // profile has all the information from the user
-    return done(null, profile);
+    /*
+    users.findOrCreate(profile, function (err, user) {
+      return done(err, user)
+    })
+    */
+    return done(null, profile)
   }
 );
 
@@ -66,6 +98,8 @@ passport.use(strategy);
 app.get('/auth0/callback',
   passport.authenticate('auth0', { failureRedirect: '/login' }),
   function(req, res) {
+    console.log('LOGIN')
+    console.log(JSON.stringify(req.user))
     if (!req.user) {
       throw new Error('user null');
     }
