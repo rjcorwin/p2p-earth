@@ -1,0 +1,52 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-if.html">
+
+<dom-module id="user-menu">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <template is="dom-if" if="{{isLoggedIn}}">
+      <a href="/auth/logout">Log out</a>
+    </template>
+    <template is="dom-if" if="{{!isLoggedIn}}">
+      <a href="/auth/google">Log in using Google</a>
+    </template>
+
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class UserMenu extends Polymer.Element {
+      static get is() { return 'user-menu'; }
+      static get properties() {
+        return {
+          isLoggedIn: {
+            type: Boolean,
+            value: false,
+            reflectToAttribute: true
+          }
+        };
+      }
+
+      async connectedCallback() {
+        super.connectedCallback()
+        let response = await fetch('/users/me', {credentials: 'include'})
+        let user = await response.json()
+        if (user.hasOwnProperty('id')) {
+          this.isLoggedIn = true
+        } else {
+          this.isLoggedIn = false
+        }
+      }
+
+    }
+
+    window.customElements.define(UserMenu.is, UserMenu);
+  </script>
+</dom-module>

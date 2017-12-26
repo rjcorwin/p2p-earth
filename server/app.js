@@ -32,6 +32,11 @@ app.use(require('express-session')({ secret: 'foo', resave: true, saveUninitiali
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.get('/auth/logout', function(req, res){
+  req.logout();
+  res.redirect('/');
+});
+
 //var User = require('./User')
 class Users {
   constructor() {
@@ -92,14 +97,15 @@ app.get('/users/:id', async function(req, res) {
 */
  
 app.get('/users/me', async function(req, res) {
+  console.log(JSON.stringify(req.user))
   if (req.user && req.user.id) {
     let user = await users.findById(req.user.id)
     return res.json(user)
   } else {
     return res.json({})
   }
-
 })
+
   
  
 
