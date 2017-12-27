@@ -1,15 +1,23 @@
 var read = require('read-yaml')
+var path = require('path')
+
 var PouchDB = require('pouchdb')
-PouchDB.defaults({prefix: './db/'})
+var LocalPouch = PouchDB.defaults({prefix: path.join(__dirname, '../db/')})
+var UsersDb = new LocalPouch('users')
+var NodesDb = new LocalPouch('nodes')
 
 var express = require('express')
 var passport = require('passport')
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy
-var path = require('path')
+let bodyParser = require('body-parser');
+
 
 //var config = read.sync('/tangerine/server/config.yml')
 
 var app = express()
+
+// parse application/json
+app.use(bodyParser.json());
 
 app.use(function (req, res, next) {
   //console.log('Time:', Date.now())
@@ -37,10 +45,24 @@ app.get('/auth/logout', function(req, res){
   res.redirect('/');
 });
 
+app.get('/nodes', async function(req, res) {
+  let response = await NodesDb.allDocs({include_docs: true})
+  let nodes = response.rows.map((row) => row.doc)
+  res.json(nodes)
+})
+
+app.post('/nodes/new', async function(req, res) {
+  console.log(req.body)
+  console.log(req.body.name)
+  let status = await NodesDb.post(req.body)
+  console.log(status)
+  res.send(status)
+})
+
 //var User = require('./User')
 class Users {
   constructor() {
-    this.db = new PouchDB('users')
+    this.db = UsersDb 
   }
   async findById(id) {
     try {

@@ -1,0 +1,86 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-if.html">
+<link rel="import" href="../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<dom-module id="node-form">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <iron-form id="form">
+      <form>
+        <paper-input name="name" label="name"></paper-input>
+        <input name="_id" type="hidden" value="{{nodeId}}"></input>
+        <input name="userId" type="hidden" value="{{userId}}"></input>
+        <paper-input name="latitude" label="latitude" value="{{latitude}}"></paper-input>
+        <paper-input name="longitude" label="longitude" value="{{longitude}}"></paper-input>
+        <paper-button on-click="saveForm">save</paper-button>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class NodeForm extends Polymer.Element {
+      static get is() { return 'node-form'; }
+      static get properties() {
+        return {
+          isLoggedIn: {
+            type: Boolean,
+            value: false,
+            reflectToAttribute: true
+          },
+          nodeId: {
+            type: String,
+            value: '' 
+          }
+
+        };
+      }
+
+      async connectedCallback() {
+        super.connectedCallback()
+        if (this.nodeId === '') {
+          let response = await fetch('/users/me', {credentials: 'include'})
+          let user = await response.json()
+          this.userId = user.id
+          this.longitude = ''
+          this.latitude = ''
+        } else {
+          let response = await fetch(`/nodes/${this.nodeId}`, {credentials: 'include'})
+          let node = await response.json()
+          this.userId = node.userId
+          this.longitude = node.longitude
+          this.latitude = node.latitude
+        }
+
+      }
+
+      async saveForm() {
+        let formData = this.$.form.serializeForm() 
+        if (formData._id === '') {
+          delete formData._id
+        }
+        let response = await fetch('/nodes/new', {
+          credentials: 'include', 
+          method: 'post', 
+          body: JSON.stringify(formData), 
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        })
+        let status = await response.json()
+        console.log(status) 
+      }
+
+    }
+
+    window.customElements.define(NodeForm.is, NodeForm);
+  </script>
+</dom-module>

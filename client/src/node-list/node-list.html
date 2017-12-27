@@ -1,0 +1,61 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<dom-module id="node-list">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <ul>
+      <template is="dom-repeat" items="{{nodes}}">
+        <li>
+          id: {{item._id}}, name: {{item.name}}, latitude: {{item.latitude}}, longitude: {{item.longitude}}
+        </li>
+      </template>
+    </ul>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class NodeList extends Polymer.Element {
+      static get is() { return 'node-list'; }
+      static get properties() {
+        return {
+          isLoggedIn: {
+            type: Boolean,
+            value: false,
+            reflectToAttribute: true
+          },
+          nodeId: {
+            type: String,
+            value: '' 
+          }
+
+        };
+      }
+
+      constructor() {
+        super()
+        this.nodes = []
+      }
+
+      async connectedCallback() {
+        super.connectedCallback()
+        let response = await fetch('/nodes', {credentials: 'include'})
+        let data = await response.json()
+        this.nodes = data
+      }
+
+    }
+
+    window.customElements.define(NodeList.is, NodeList);
+  </script>
+</dom-module>
