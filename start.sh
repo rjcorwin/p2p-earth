@@ -14,6 +14,9 @@ docker rm $CONTAINER_NAME > /dev/null
 echo "Running $T_CONTAINER_NAME at version $T_TAG"
 docker run -d \
   --volume $(pwd)/client/src:/app/client/src \
+  --volume $(pwd)/client/bower.json:/app/client/bower.json \
+  --volume $(pwd)/client/package.json:/app/client/package.json \
+  --volume $(pwd)/server/package.json:/app/server/package.json \
   --name $CONTAINER_NAME \
   -e "BASE_PATH=$BASE_PATH" \
   -e "SESSION_SECRET=$SESSION_SECRET" \
