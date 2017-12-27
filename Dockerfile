@@ -13,6 +13,8 @@ RUN cd /app/server && npm install
 ADD ./client/ /app/client/
 ADD ./server/ /app/server/
 
+RUN mkdir /app/db
+
 EXPOSE 3000 
 
 WORKDIR /app/server/
