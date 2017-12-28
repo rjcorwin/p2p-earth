@@ -4,7 +4,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 
-<dom-module id="node-list">
+<dom-module id="my-node-list">
   <template>
     <style>
       :host {
@@ -14,7 +14,7 @@
     <ul>
       <template is="dom-repeat" items="{{nodes}}">
         <li>
-          id: {{item._id}}, name: {{item.name}}, latitude: {{item.latitude}}, longitude: {{item.longitude}} 
+          id: {{item._id}}, name: {{item.name}}, latitude: {{item.latitude}}, longitude: {{item.longitude}} <a href="#nodes/{{item._id}}"> [edit] </a><a href="#nodes/{{item._id}}/delete"> [delete] </a>
         </li>
       </template>
     </ul>
@@ -25,8 +25,8 @@
      * @customElement
      * @polymer
      */
-    class NodeList extends Polymer.Element {
-      static get is() { return 'node-list'; }
+    class MyNodeList extends Polymer.Element {
+      static get is() { return 'my-node-list'; }
       static get properties() {
         return {
           isLoggedIn: {
@@ -49,13 +49,21 @@
 
       async connectedCallback() {
         super.connectedCallback()
-        let response = await fetch('/nodes', {credentials: 'include'})
-        let data = await response.json()
-        this.nodes = data
+        let usersMeResponse = await fetch('/users/me', {credentials: 'include'})
+        let user = await usersMeResponse.json()
+        if (user.hasOwnProperty('id')) {
+          this.isLoggedIn = true
+          let response = await fetch('/nodes', {credentials: 'include'})
+          let data = await response.json()
+          this.nodes = data.filter((node) => (node.userId === user.id))
+        } else {
+          this.isLoggedIn = false
+        }
+
       }
 
     }
 
-    window.customElements.define(NodeList.is, NodeList);
+    window.customElements.define(MyNodeList.is, MyNodeList);
   </script>
 </dom-module>

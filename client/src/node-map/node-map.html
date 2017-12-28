@@ -1,0 +1,127 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/google-map/google-map.html">
+<link rel="import" href="../node-info/node-info.html">
+<!--script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQm4Texabj0xp0cC2UD0IdyvhnCFNOYFY"></script-->
+
+<dom-module id="node-map">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      google-map {
+        height: 700px;
+      }
+      #popup {
+        display: none;
+        position: absolute;
+        z-index: 9000;
+        margin: 15px;
+        bottom: 0px;
+        padding: 5px;
+        background: #fff;
+        border-radius: 3px;
+        box-shadow: 0px 0px 3px;
+      }
+      #popupWrapper {
+        position: relative;
+      }
+      #popupClose {
+        position: absolute;
+        cursor: pointer;
+        right: 0px;
+        top: -15px;
+      }
+    </style>
+      <div id="popup">
+        <div id="popupWrapper">
+          <div on-click="hidePopup" id="popupClose"> [close] </div>
+          <div id="popupContents"></div>
+        </div>
+      </div>
+      <google-map id="map" map-type="terrain" api-key="AIzaSyAQm4Texabj0xp0cC2UD0IdyvhnCFNOYFY">
+        <template is="dom-repeat" items="{{nodes}}">
+          <google-map-marker click-events data-node-id="{{item._id}}" latitude="{{item.latitude}}" longitude="{{item.longitude}}" ></google-map-marker>
+        </template>
+      </google-map>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class NodeMap extends Polymer.Element {
+      static get is() { return 'node-map'; }
+      static get properties() {
+        return {
+
+        };
+      }
+
+      onMarkerClick(event) {
+        let markerEl = event.target
+        this.showNode(markerEl.dataNodeId)
+      }
+
+      hidePopup() {
+        this.$.popup.style.display = 'none'
+      }
+
+      showNode(nodeId) {
+        this.$.popupContents.innerHTML = ''
+        this.$.popup.style.display = 'block'
+        let nodeInfoEl = document.createElement('node-info')
+        nodeInfoEl.setAttribute('node-id', nodeId)
+        this.$.popupContents.appendChild(nodeInfoEl)
+      }
+
+      constructor() {
+        super()
+        this.nodes = []
+      }
+
+      async connectedCallback() {
+        super.connectedCallback()
+        let response = await fetch('/nodes', {credentials: 'include'})
+        let data = await response.json()
+        this.nodes = data
+        console.log('fit')
+        this.$.map.style.display = 'absolute' 
+        this.$.map.style.top = '0px' 
+        this.$.map.style.left = '0px' 
+        this.$.map.style.height = `${window.innerHeight}px`
+        this.style.height = `${window.innerHeight}px`
+        this.$.map.style.width = `${window.innerWidth}px`
+        this.$.map.setAttribute('fit-to-markers', '')
+        this.$.map.setAttribute('zoom', '3')
+        this.$.map.addEventListener('google-map-marker-click', this.onMarkerClick.bind(this))
+        /*
+				var map;
+				map = new google.maps.Map(this.$.map, {
+					zoom: 2,
+					center: new google.maps.LatLng(2.8,-187.3),
+					mapTypeId: 'terrain'
+				});
+
+				// Loop through the results array and place a marker for each
+				// set of coordinates.
+				for (var i = 0; i < this.nodes.length; i++) {
+					var latLng = new google.maps.LatLng(this.nodes[i].latitude, this.nodes[i].longitude);
+					var marker = new google.maps.Marker({
+						position: latLng,
+						map: map
+					});
+				}
+        */
+			}
+
+    }
+
+    window.customElements.define(NodeMap.is, NodeMap);
+  </script>
+</dom-module>

@@ -4,22 +4,25 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 
-<dom-module id="node-form">
+<dom-module id="node-info">
   <template>
     <style>
       :host {
         display: block;
       }
+      iframe {
+        border: none;
+        width: 100%;
+      }
     </style>
     <iron-form id="form">
       <form>
-        <paper-input name="name" label="name" value="{{name}}"></paper-input>
-        <input name="_id" type="hidden" value="{{nodeId}}"></input>
-        <input name="userId" type="hidden" value="{{userId}}"></input>
-        <paper-input name="latitude" label="latitude" value="{{latitude}}"></paper-input>
-        <paper-input name="longitude" label="longitude" value="{{longitude}}"></paper-input>
-        <paper-input name="datUrl" label="Dat URL" value="{{datUrl}}"></paper-input>
-        <paper-button on-click="saveForm">save</paper-button>
+        <h2>{{name}}</h2>
+        _id: {{nodeId}}, 
+        userId: {{userId}}, 
+        latitude: {{latitude}}, 
+        longitude: {{longitude}} <br>
+        <iframe id="datView" src="{{datUrl}}"></iframe>
   </template>
 
   <script>
@@ -27,8 +30,8 @@
      * @customElement
      * @polymer
      */
-    class NodeForm extends Polymer.Element {
-      static get is() { return 'node-form'; }
+    class NodeInfo extends Polymer.Element {
+      static get is() { return 'node-info'; }
       static get properties() {
         return {
           isLoggedIn: {
@@ -46,23 +49,14 @@
 
       async connectedCallback() {
         super.connectedCallback()
-        if (this.nodeId === '') {
-          let response = await fetch('/users/me', {credentials: 'include'})
-          let user = await response.json()
-          this.userId = user.id
-          this.longitude = ''
-          this.latitude = ''
-          this.datUrl = ''
-        } else {
-          let response = await fetch(`/nodes/${this.nodeId}`, {credentials: 'include'})
-          let node = await response.json()
-          this.userId = node.userId
-          this.name = node.name
-          this.longitude = node.longitude
-          this.latitude = node.latitude
-          this.datUrl = node.datUrl
-        }
-
+        let response = await fetch(`/nodes/${this.nodeId}`, {credentials: 'include'})
+        let node = await response.json()
+        this.userId = node.userId
+        this.name = node.name
+        this.longitude = node.longitude
+        this.latitude = node.latitude
+        this.datUrl = node.datUrl
+        this.$.datView.style.height = `${window.innerHeight/2}px`
       }
 
       async saveForm() {
@@ -86,6 +80,6 @@
 
     }
 
-    window.customElements.define(NodeForm.is, NodeForm);
+    window.customElements.define(NodeInfo.is, NodeInfo);
   </script>
 </dom-module>

@@ -1,7 +1,11 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<!--script href="../../bower_components/navigo/lib/navigo.min.js"></script-->
+<script src="//unpkg.com/navigo@6"></script>
 <link rel="import" href="../user-menu/user-menu.html">
 <link rel="import" href="../node-form/node-form.html">
+<link rel="import" href="../node-map/node-map.html">
 <link rel="import" href="../node-list/node-list.html">
+<link rel="import" href="../my-node-list/my-node-list.html">
 
 <dom-module id="client-app">
   <template>
@@ -9,11 +13,40 @@
       :host {
         display: block;
       }
+      node-map {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+      }
+      #content {
+        margin: 80px 15px 0px;
+      }
+      #menu {
+        position: absolute;
+        border-radius: 3px;
+        box-shadow: 0px 0px 3px;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        background: #fff;
+        padding: 15px;
+      }
     </style>
-    <h2>Hello [[prop1]]!</h2>
-    <user-menu></user-menu>
-    <node-list></node-list>
-    <node-form></node-form>
+    <div id="menu">
+      <b> P2P Earth </b>
+      <a href='#home'>Map</a>
+      <template is="dom-if" if="{{isLoggedIn}}">
+        <a href="#my-nodes">My Nodes</a>
+        <a href="#nodes/new">Add a node</a>
+        <a href="/auth/logout">Log out</a>
+      </template>
+      <template is="dom-if" if="{{!isLoggedIn}}">
+        <a href="/auth/google">Log in using Google</a>
+      </template>
+    </div>
+
+		<div id="content"></div>
+
   </template>
 
   <script>
@@ -22,7 +55,9 @@
      * @polymer
      */
     class ClientApp extends Polymer.Element {
+
       static get is() { return 'client-app'; }
+
       static get properties() {
         return {
           prop1: {
@@ -30,6 +65,74 @@
             value: 'client-app'
           }
         };
+      }
+
+      constructor() {
+        super()
+        this.isLoggedIn = false
+      }
+
+      async connectedCallback() {
+        super.connectedCallback()
+        var root = null;
+        var useHash = true; // Defaults to: false
+        var hash = '#!'; // Defaults to: '#'
+				window.router = new Navigo(root, useHash, hash);
+				window.router
+					.on({
+						
+            'nodes/new': (params, query) => {
+							let nodeForm = document.createElement('node-form')
+						  this.$.content.innerHTML = ''
+              this.$.content.appendChild(nodeForm)
+              nodeForm.addEventListener('saved', () => window.router.navigate('/my-nodes'))
+
+						},
+
+            'nodes/:id': (params, query) => {
+							let nodeForm = document.createElement('node-form')
+							nodeForm.setAttribute('node-id', params.id)
+						  this.$.content.innerHTML = ''
+              this.$.content.appendChild(nodeForm)
+              nodeForm.addEventListener('saved', () => window.router.navigate('/my-nodes'))
+						},
+
+            'nodes/:id/delete': async (params, query) => {
+              let response = await fetch(`/nodes/${params.id}`, {
+                credentials: 'include', 
+                method: 'delete'
+              })
+              let status = await response.json()
+              window.router.navigate('/my-nodes')
+            },
+
+            'my-nodes': () => {
+							let nodeList = document.createElement('my-node-list')
+						  this.$.content.innerHTML = '' 
+							this.$.content.appendChild(nodeList)
+						},
+
+						'*': () => {
+							let nodeList = document.createElement('node-list')
+							let nodeMap = document.createElement('node-map')
+              nodeMap.style.height = `${window.innerHeight}px`
+              nodeMap.style.width = `${window.innerWidth}px`
+						  this.$.content.innerHTML = '' 
+							this.$.content.appendChild(nodeMap)
+							//this.$.content.appendChild(nodeList)
+						}
+
+					})
+					.resolve();
+
+        let response = await fetch('/users/me', {credentials: 'include'})
+        let user = await response.json()
+        if (user.hasOwnProperty('id')) {
+          this.isLoggedIn = true
+        } else {
+          this.isLoggedIn = false
+        }
+
       }
     }
 

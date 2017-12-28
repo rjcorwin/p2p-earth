@@ -51,12 +51,33 @@ app.get('/nodes', async function(req, res) {
   res.json(nodes)
 })
 
-app.post('/nodes/new', async function(req, res) {
+app.post('/nodes', async function(req, res) {
   console.log(req.body)
   console.log(req.body.name)
-  let status = await NodesDb.post(req.body)
-  console.log(status)
+  let status = {}
+  if (req.body._id) {
+    try {
+      let doc = await NodesDb.get(req.body._id)
+      let newDoc = Object.assign({}, req.body, { _rev: doc._rev }) 
+      status = await NodesDb.post(newDoc)
+    } catch (e) {
+      console.log(e)
+    }
+  } else {
+    status = await NodesDb.post(req.body)
+  }
   res.send(status)
+})
+
+app.delete('/nodes/:id', async function(req, res) {
+  let doc = await NodesDb.get(req.params.id)
+  let status = await NodesDb.remove(doc)
+  res.send(status)
+})
+
+app.get('/nodes/:id', async function(req, res) {
+  let doc = await NodesDb.get(req.params.id)
+  res.json(doc)
 })
 
 //var User = require('./User')
